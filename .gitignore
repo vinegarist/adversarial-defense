@@ -1,5 +1,4 @@
 __pycache__  
 *.pyc  
-data/  
 save_model/  
-.ipynb_checkpoints/ 
+data/  
