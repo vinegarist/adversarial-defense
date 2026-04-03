@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from pgd import LinfPGD
-from occlusion_attack import OcclusionAttack
+from occlusion_attack import OcclusionAttack, AdaptiveOcclusionAttack
 
 
 class AdversarialTraining(nn.Module):
@@ -43,6 +43,29 @@ class OcclusionAdversarialTraining(nn.Module):
                                          top_k=top_k,
                                          occlu_color=occlu_color,
                                          kernel_size=kernel_size)
+        self.is_at = is_at
+
+    def forward(self, x, y=None):
+        if self.is_at:
+            training = self.model.training
+
+            assert y is not None
+
+            self.model.eval()
+            x_adv = self.adversary((x, y))
+
+            if training:
+                self.model.train()
+            return self.model(x_adv)
+        else:
+            return self.model(x)
+
+
+class AdaptiveOcclusionAdversarialTraining(nn.Module):
+    def __init__(self, model, N=5, R=3, c=0.0, is_at=False):
+        super(AdaptiveOcclusionAdversarialTraining, self).__init__()
+        self.model = model
+        self.adversary = AdaptiveOcclusionAttack(self.model, N=N, R=R, c=c)
         self.is_at = is_at
 
     def forward(self, x, y=None):

@@ -11,7 +11,11 @@
       "Bash(\"/d/anaconda3/Scripts/conda.exe\" env:*)",
       "Bash(tail:*)",
       "Bash(python:*)",
-      "Bash(D:\\\\anaconda3\\\\envs\\\\adv-attack\\\\python.exe:*)"
+      "Bash(D:\\\\anaconda3\\\\envs\\\\adv-attack\\\\python.exe:*)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "Bash(ls -d /d/软件/对抗性防御/Inuput*/)",
+      "Bash(python -c \":*)"
     ]
   }
 }
