@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(pip install:*)",
+      "Bash(head:*)",
+      "Bash(echo no conda:*)",
+      "Bash(\"D:\\\\anaconda3\\\\python.exe\":*)",
+      "Bash(grep:*)",
+      "Bash(D:\\\\anaconda3\\\\Scripts\\\\conda.exe env:*)",
+      "Bash(\"/d/anaconda3/Scripts/conda.exe\" env:*)",
+      "Bash(tail:*)",
+      "Bash(python:*)",
+      "Bash(D:\\\\anaconda3\\\\envs\\\\adv-attack\\\\python.exe:*)"
+    ]
+  }
+}
