@@ -1,0 +1,6 @@
+model,clean_acc,occlusion_acc,success_rate
+Standard,99.00%,47.36%,51.64%
+Occlusion-AT,95.68%,97.70%,-2.02%
+PGD-AT,99.36%,64.58%,34.78%
+FGSM-AT,99.24%,71.04%,28.20%
+Mix-AT,98.46%,90.18%,8.28%
