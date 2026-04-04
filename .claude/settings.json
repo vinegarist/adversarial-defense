@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(d:/anaconda3/envs/adv-attack/python.exe)",
+      "Bash(jupyter nbconvert:*)",
+      "Bash(ls -la \"D:\\\\软件\\\\对抗性防御\\\\对抗性防御-1\\\\03.代码\\\\results_figures\\\\multi_param\"*)",
+      "Bash(ls -la results_figures/multi_param*)"
+    ]
+  }
+}

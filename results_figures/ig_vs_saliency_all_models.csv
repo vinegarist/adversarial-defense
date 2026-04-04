@@ -1,0 +1,8 @@
+Model,IG-Fixed,Saliency-Fixed,Diff-Fixed,IG-Adaptive,Saliency-Adaptive,Diff-Adaptive
+Standard,28.64,71.18,42.54,16.66,34.35,17.69
+PGD-AT,49.17,70.09,20.92,25.42,30.16,4.74
+FGSM-AT,54.14,73.76,19.62,25.55,33.95,8.4
+Occlusion-AT(Fixed),97.34,93.78,-3.56,64.23,78.93,14.7
+"Mix-AT(Fixed,10ep)",84.43,94.95,10.52,59.23,67.8,8.57
+Occlusion-AT(Adaptive),90.42,98.14,7.72,87.03,92.04,5.01
+"Mix-AT(Adaptive,50ep)",87.69,94.03,6.34,77.5,76.07,-1.43

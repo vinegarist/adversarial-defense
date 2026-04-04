@@ -1,0 +1,8 @@
+Model,Gini_Mean,Gini_Std
+Standard,0.5252,0.0216
+PGD-AT,0.8357,0.0358
+FGSM-AT,0.7678,0.041
+Occlusion-AT(Fixed),0.5514,0.0222
+"Mix-AT(Fixed,10ep)",0.8055,0.0361
+Occlusion-AT(Adaptive),0.5053,0.0181
+"Mix-AT(Adaptive,50ep)",0.8094,0.0286

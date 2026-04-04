@@ -1,0 +1,5 @@
+Model,Attack_Type,IG_Acc,Saliency_Acc,IG_Attack_Success,Saliency_Attack_Success,IG_vs_Saliency_Diff
+Standard,Fixed (k=9),28.64,71.18,70.36,27.82,42.54
+Standard,"Adaptive (N=5,R=3)",16.66,34.35,82.34,64.65,17.689999999999998
+PGD-AT,Fixed (k=9),49.17,70.09,49.83,28.91,20.919999999999998
+PGD-AT,"Adaptive (N=5,R=3)",25.42,30.16,73.58,68.84,4.739999999999995
