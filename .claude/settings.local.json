@@ -15,7 +15,8 @@
       "WebFetch(domain:github.com)",
       "WebSearch",
       "Bash(ls -d /d/软件/对抗性防御/Inuput*/)",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(chcp 65001)"
     ]
   }
 }
