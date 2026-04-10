@@ -1,0 +1,15 @@
+Attack_Type,Accuracy
+Clean,98.91
+FGSM,94.51
+PGD,92.85
+CW,92.8
+Fixed(k=9),95.48
+"Adaptive(N=5,R=3)",80.65
+"Adaptive(N=3,R=3)",88.65
+"Adaptive(N=7,R=3)",70.64
+"Adaptive(N=10,R=3)",54.7
+Fixed(k=3),97.79
+Fixed(k=15),92.56
+Color(Black),80.65
+Color(Gray),77.88
+Color(White),54.77
