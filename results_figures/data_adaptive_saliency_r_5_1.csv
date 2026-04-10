@@ -1,0 +1,11 @@
+Model,Attack_Type,N,R,Accuracy
+Standard,Adaptive-Saliency,5,3,34.33
+PGD-AT,Adaptive-Saliency,5,3,30.12
+FGSM-AT,Adaptive-Saliency,5,3,33.9
+Occlusion-AT,Adaptive-Saliency,5,3,78.91
+Mix-AT(Occlusion+PGD),Adaptive-Saliency,5,3,67.86
+Adaptive-Saliency-AT,Adaptive-Saliency,5,3,72.59
+"Adaptive-Saliency-AT(N=5,R=3)",Adaptive-Saliency,5,3,94.3
+Adaptive-Occlusion-AT,Adaptive-Saliency,5,3,92.02
+Mix-AT,Adaptive-Saliency,5,3,80.65
+Adaptive-Mix-AT,Adaptive-Saliency,5,3,76.06
