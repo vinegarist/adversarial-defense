@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 # captum是可选依赖，仅IG-based攻击需要
 try:
@@ -371,5 +372,177 @@ class AdaptiveOcclusionAttack(nn.Module):
                     # 检查哪些样本已被攻击成功
                     pred = self.net(occ_x).argmax(dim=1)
                     sample2perturb = (pred.cpu() == y.cpu()).numpy()
+
+        return occ_x
+
+
+# ============================================================
+# 以下为迁移自 inequality 项目的 IG-based 遮蔽攻击
+# 使用 captum IntegratedGradients 计算归因图，
+# 采用 inequality 项目的 get_feature_map_avg + get_perturb_mask 逻辑
+# ============================================================
+
+
+class IGFixedOcclusionAttack(nn.Module):
+    """基于IntegratedGradients的固定遮蔽攻击（迁移自inequality项目）
+
+    使用captum的IntegratedGradients计算归因图（n_steps=50），
+    通道均值降维后按归因值排序，选择top_k个最重要像素，
+    用半径r的窗口进行遮蔽。遮蔽掩码生成逻辑与inequality项目的
+    OcclusionAttack.get_perturb_mask完全一致。
+    """
+
+    def __init__(self, net, top_k=9, occlu_color=0.0, kernel_size=3, n_steps=50):
+        """
+        参数说明：
+        net: 待攻击的模型
+        top_k: 选择归因值最大的前top_k个像素作为遮蔽中心
+        occlu_color: 遮蔽颜色，0为黑色，1为白色，0.5为灰色
+        kernel_size: 遮蔽窗口大小（实际半径 r = kernel_size // 2）
+        n_steps: IntegratedGradients积分步数（默认50，与inequality一致）
+        """
+        super(IGFixedOcclusionAttack, self).__init__()
+        if not HAS_CAPTUM:
+            raise ImportError("IGFixedOcclusionAttack需要captum库，请安装: pip install captum")
+        self.net = net
+        self.top_k = top_k
+        self.occlu_color = occlu_color
+        self.r = kernel_size // 2
+        self.n_steps = n_steps
+
+    def forward(self, inputs):
+        x, y = inputs
+        device = x.device
+        bs = x.shape[0]
+        channels = x.shape[1]
+        H, W = x.shape[2], x.shape[3]
+
+        # 1. 计算IntegratedGradients归因图（与inequality项目get_gradshap一致）
+        with torch.enable_grad():
+            x_ig = x.detach().requires_grad_()
+            ig = IntegratedGradients(self.net)
+            attr_ig = ig.attribute(
+                x_ig, target=y, n_steps=self.n_steps,
+                baselines=x_ig * 0
+            ).detach().float()
+
+        # 2. 通道均值得到2D归因图（与inequality的get_feature_map_avg一致）
+        attr_2d = attr_ig.mean(dim=1).cpu().numpy()  # [B, H, W]
+
+        # 3. 对每个样本生成遮蔽（与inequality的get_perturb_mask逻辑一致）
+        x_adv = x.clone().detach()
+        r = self.r
+
+        for i in range(bs):
+            img_grad_np = attr_2d[i]
+            img_grad_flatten = np.sort(img_grad_np.flatten())
+
+            # 取top_k个最大归因值对应的像素
+            perturb_values = [img_grad_flatten[-(j + 1)] for j in range(self.top_k)]
+
+            mask = torch.zeros(channels, H, W, device=device)
+            for value in perturb_values:
+                positions = np.argwhere(img_grad_np == value)
+                if len(positions) > 0:
+                    px, py = positions[0]
+                    mask[:, max(0, px - r):min(H, px + r), max(0, py - r):min(W, py + r)] = 1
+
+            x_adv[i] = x[i] * (1 - mask) + self.occlu_color * mask
+
+        return torch.clamp(x_adv, 0, 1)
+
+
+class AdaptiveIGOcclusionAttack(nn.Module):
+    """基于IntegratedGradients的自适应遮蔽攻击（迁移自inequality项目）
+
+    使用captum的IntegratedGradients计算归因图，
+    渐进式遮蔽：遍历(r, n)参数组合，从小到大增加遮蔽区域和半径，
+    对每个样本独立判断：一旦攻击成功（预测改变）即停止。
+    迭代顺序与inequality项目的OcclusionAttack.occlusion一致：
+    先遍历半径r，再遍历遮蔽数量n。
+    """
+
+    def __init__(self, net, N=5, R=3, c=0.0, n_steps=50):
+        """
+        参数说明：
+        net: 待攻击的模型
+        N: 最大遮蔽区域数量
+        R: 最大遮蔽半径
+        c: 遮蔽颜色值（0为黑色）
+        n_steps: IntegratedGradients积分步数（默认50）
+        """
+        super(AdaptiveIGOcclusionAttack, self).__init__()
+        if not HAS_CAPTUM:
+            raise ImportError("AdaptiveIGOcclusionAttack需要captum库，请安装: pip install captum")
+        self.net = net
+        self.N = N
+        self.R = R
+        self.c = c
+        self.n_steps = n_steps
+
+        # 构建参数列表（与inequality的OcclusionAttack.__init__一致：先r后c）
+        self.occ_params_list = []
+        for r in range(1, R + 1):
+            for n in range(1, N + 1):
+                self.occ_params_list.append((r, n))
+
+    def forward(self, inputs):
+        x, y = inputs
+        device = x.device
+        bs = x.shape[0]
+        channels = x.shape[1]
+        H, W = x.shape[2], x.shape[3]
+
+        # 1. 计算IntegratedGradients归因图
+        with torch.enable_grad():
+            x_ig = x.detach().requires_grad_()
+            ig = IntegratedGradients(self.net)
+            attr_ig = ig.attribute(
+                x_ig, target=y, n_steps=self.n_steps,
+                baselines=x_ig * 0
+            ).detach().float()
+
+        # 2. 通道均值得到2D归因图
+        attr_2d = attr_ig.mean(dim=1).cpu().numpy()  # [B, H, W]
+
+        # 3. 预排序每个样本的归因值（避免重复计算）
+        sorted_positions = []
+        for i in range(bs):
+            img_grad_np = attr_2d[i]
+            flat = img_grad_np.flatten()
+            top_indices = np.argsort(flat)[::-1][:self.N]
+            positions = [np.unravel_index(idx, (H, W)) for idx in top_indices]
+            sorted_positions.append(positions)
+
+        # 4. 初始化
+        occ_x = x.clone().detach()
+        with torch.no_grad():
+            pred_init = self.net(x).argmax(dim=1)
+        sample_active = (pred_init.cpu() == y.cpu()).numpy()
+
+        # 5. 渐进式遮蔽 + 逐样本早停
+        with torch.no_grad():
+            for (r, n) in self.occ_params_list:
+                if sample_active.sum() == 0:
+                    break
+
+                for idx in range(bs):
+                    if not sample_active[idx]:
+                        continue
+
+                    # 生成遮蔽掩码（使用前n个最重要像素，半径r）
+                    mask = torch.zeros(channels, H, W, device=device)
+                    for j in range(n):
+                        px, py = sorted_positions[idx][j]
+                        mask[:, max(0, px - r):min(H, px + r),
+                             max(0, py - r):min(W, py + r)] = 1
+
+                    occ_x[idx] = x[idx] * (1 - mask) + self.c * mask
+
+                occ_x = torch.clamp(occ_x, 0, 1)
+
+                # 检查攻击是否成功
+                pred = self.net(occ_x).argmax(dim=1)
+                sample_active = (pred.cpu() == y.cpu()).numpy()
 
         return occ_x
