@@ -1,0 +1,4 @@
+model,attack_type,Clean,FGSM,PGD,CW,Fixed-Saliency,Adaptive-Saliency
+Standard,White-box,99.0,79.46,33.65,33.45,71.19,34.33
+Adaptive-Saliency-AT,White-box,98.73,41.56,4.63,5.76,98.43,94.3
+Adaptive-Saliency-AT,Transfer (Standard),98.73,95.38,93.98,96.57,95.15,91.96
