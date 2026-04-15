@@ -546,3 +546,142 @@ class AdaptiveIGOcclusionAttack(nn.Module):
                 sample_active = (pred.cpu() == y.cpu()).numpy()
 
         return occ_x
+
+
+class InequalityIGOcclusionAttack(nn.Module):
+    """完全复用inequality项目OcclusionAttack逻辑的自适应遮蔽攻击
+
+    与原项目100%一致的部分：
+    1. 归因图: captum IntegratedGradients (n_steps=50, baselines=0)
+    2. 降维: np.mean(axis=0) — get_feature_map_avg
+    3. 像素定位: np.sort(flatten) + np.argwhere(==value) — get_perturb_mask
+    4. 掩码切片: max(0,x-r):min(w,x+r) — 与原项目一致
+    5. 遮蔽值: np.min(img_np) — 原图最小像素值，非固定常数
+    6. 迭代顺序: 先r后c，每次(r,c)对原图重新生成掩码
+    7. 早停: 攻击成功(预测改变)即停止
+    """
+
+    def __init__(self, net, N=5, R=3, c=None, n_steps=50):
+        """
+        参数说明：
+        net: 待攻击的模型
+        N: 最大遮蔽区域数量（对应原项目occlusion_cnt）
+        R: 最大遮蔽半径（对应原项目r_max）
+        c: 忽略，遮蔽值由np.min(img)自动计算（保留参数仅为接口兼容）
+        n_steps: IntegratedGradients积分步数（默认50）
+        """
+        super(InequalityIGOcclusionAttack, self).__init__()
+        if not HAS_CAPTUM:
+            raise ImportError("InequalityIGOcclusionAttack需要captum库")
+        self.net = net
+        self.N = N
+        self.R = R
+        self.n_steps = n_steps
+
+        # 构建参数列表（与原项目完全一致：先r后c）
+        # 原项目: for r in range(r_min, r_max): for c in range(1, cnt):
+        self.occ_params_list = []
+        for r in range(1, R + 1):
+            for c in range(1, N + 1):
+                self.occ_params_list.append((r, c))
+
+    def _get_feature_map_avg(self, img_grad):
+        """与原项目get_feature_map_avg完全一致"""
+        img_grad_np = np.mean(img_grad.cpu().detach().numpy()[0], axis=0)
+        return img_grad_np
+
+    def _get_perturb_mask(self, img_grad_np, img, r, c, device):
+        """与原项目get_perturb_mask完全一致
+
+        使用np.sort + np.argwhere定位像素，
+        遮蔽值为np.min(img_np)。
+        """
+        img_np = img.cpu().detach().numpy()[0]
+        channels = img_np.shape[0]
+        w, h = img_grad_np.shape
+
+        perturb_mask = np.zeros((channels, w, h))
+        avg_value_mask = np.zeros((channels, w, h))
+
+        # 原项目: img_grad_flatten = np.sort(img_grad_np.flatten())
+        img_grad_flatten = np.sort(img_grad_np.flatten())
+
+        # 原项目: 取top-c个最大归因值
+        perturb_value_list = []
+        for i in range(c):
+            perturb_value_list.append(img_grad_flatten[-1 * (i + 1)])
+
+        # 原项目: np.argwhere定位 + min(img)填充
+        for value in perturb_value_list:
+            positions = np.argwhere(img_grad_np == value)
+            if len(positions) > 0:
+                x, y = positions[0]
+                perturb_mask[:, max(0, x - r):min(w, x + r),
+                             max(0, y - r):min(h, y + r)] = 1
+                avg_value_mask[:, max(0, x - r):min(w, x + r),
+                               max(0, y - r):min(h, y + r)] = np.min(img_np)
+
+        perturb_mask = torch.from_numpy(
+            np.expand_dims(perturb_mask, axis=0)).to(device)
+        avg_value_mask = torch.from_numpy(
+            np.expand_dims(avg_value_mask, axis=0)).to(device)
+
+        return perturb_mask, avg_value_mask
+
+    def forward(self, inputs):
+        x, y = inputs
+        device = x.device
+        bs = x.shape[0]
+
+        # 1. 计算IntegratedGradients归因图
+        with torch.enable_grad():
+            x_ig = x.detach().requires_grad_()
+            ig = IntegratedGradients(self.net)
+            attr_ig = ig.attribute(
+                x_ig, target=y, n_steps=self.n_steps,
+                baselines=x_ig * 0
+            ).detach().float()
+
+        # 2. 逐样本攻击（原项目为batch_size=1逐样本处理）
+        occ_x = x.clone().detach()
+
+        with torch.no_grad():
+            pred_init = self.net(x).argmax(dim=1)
+
+        for idx in range(bs):
+            # 跳过已经预测错误的样本
+            if pred_init[idx] != y[idx]:
+                continue
+
+            single_img = x[idx:idx + 1]          # [1, C, H, W]
+            single_grad = attr_ig[idx:idx + 1]    # [1, C, H, W]
+            single_label = y[idx:idx + 1]
+
+            # get_feature_map_avg
+            img_grad_np = self._get_feature_map_avg(single_grad)
+
+            # 原项目occlusion(): 遍历(r,c)，每次对原图重新遮蔽
+            org_img = single_img.clone().detach()
+            attacked = False
+
+            for (r, c) in self.occ_params_list:
+                perturb_mask, occ_value = self._get_perturb_mask(
+                    img_grad_np, single_img, r, c, device)
+
+                # 原项目: occ_images = org_images*(1-perturb_mask) + perturb_mask*occ_value
+                occ_img = org_img.detach() * (1 - perturb_mask) + \
+                    perturb_mask * occ_value
+
+                with torch.no_grad():
+                    outputs = self.net(occ_img.float())
+                    _, pre = torch.max(outputs.data, 1)
+
+                if pre != single_label:
+                    occ_x[idx] = occ_img[0]
+                    attacked = True
+                    break
+
+            if not attacked:
+                occ_x[idx] = occ_img[0]
+
+        return torch.clamp(occ_x, 0, 1)

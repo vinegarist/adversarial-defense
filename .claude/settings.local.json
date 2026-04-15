@@ -18,7 +18,8 @@
       "Bash(python -c \":*)",
       "Bash(chcp 65001)",
       "Bash(python3 -c \"import json; f=open\\('d:/软件/对抗性防御/对抗性防御-1/03.代码/15. Saliency遮蔽攻击对抗性训练.ipynb', 'r', encoding='utf-8'\\); data=json.load\\(f\\); print\\(json.dumps\\(data['cells'][47]['source'], ensure_ascii=False, indent=2\\)\\)\")",
-      "Bash(python -u -c \":*)"
+      "Bash(python -u -c \":*)",
+      "Bash(ls:*)"
     ]
   }
 }

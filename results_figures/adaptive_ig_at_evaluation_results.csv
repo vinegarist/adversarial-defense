@@ -1,0 +1,14 @@
+attack,param,N,R,accuracy,top_k
+Adaptive,"N=3,R=3",3.0,3.0,93.21,
+Adaptive,"N=5,R=3",5.0,3.0,88.7,
+Adaptive,"N=7,R=3",7.0,3.0,82.1,
+Adaptive,"N=10,R=3",10.0,3.0,67.58,
+Adaptive,"N=5,R=2",5.0,2.0,93.16,
+Adaptive,"N=5,R=3",5.0,3.0,88.7,
+Adaptive,"N=5,R=4",5.0,4.0,77.58,
+Fixed,top_k=3,,,97.81,3.0
+Fixed,top_k=5,,,97.61,5.0
+Fixed,top_k=7,,,96.66,7.0
+Fixed,top_k=9,,,96.07,9.0
+Fixed,top_k=12,,,95.25,12.0
+Fixed,top_k=15,,,94.56,15.0
