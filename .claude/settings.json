@@ -4,7 +4,21 @@
       "Bash(d:/anaconda3/envs/adv-attack/python.exe)",
       "Bash(jupyter nbconvert:*)",
       "Bash(ls -la \"D:\\\\软件\\\\对抗性防御\\\\对抗性防御-1\\\\03.代码\\\\results_figures\\\\multi_param\"*)",
-      "Bash(ls -la results_figures/multi_param*)"
+      "Bash(ls -la results_figures/multi_param*)",
+      "Read(//d/软件/对抗性防御/_extracted_refs_txt/**)",
+      "Read(//d/软件/南开大学论文模板2026/**)",
+      "Bash(conda run *)",
+      "Bash(D:/anaconda3/envs/adv-attack/python.exe \"D:/软件/对抗性防御/对抗性防御-1/03.代码/export_to_thesis.py\")",
+      "Read(//d/软件/对抗性防御/**)",
+      "Bash(where python *)",
+      "Bash(\"D:\\\\anaconda3\\\\envs\\\\adv-attack\\\\python.exe\" generate_paper_figures.py)",
+      "Bash(\"D:\\\\anaconda3\\\\envs\\\\adv-attack\\\\python.exe\" -c \"import torch; m = torch.load\\(r'D:\\\\软件\\\\对抗性防御\\\\对抗性防御-1\\\\03.代码\\\\save_model\\\\50epoch\\\\mnist_lenet5.pth', map_location='cpu'\\); print\\(type\\(m\\)\\); print\\(m.keys\\(\\) if isinstance\\(m, dict\\) else 'not a dict'\\)\")",
+      "Bash(\"D:\\\\anaconda3\\\\envs\\\\adv-attack\\\\python.exe\" -c \"import torch; m = torch.load\\(r'D:\\\\软件\\\\对抗性防御\\\\对抗性防御-1\\\\03.代码\\\\save_model\\\\50epoch\\\\mnist_lenet5.pth', map_location='cpu', weights_only=False\\); print\\(type\\(m['net']\\)\\); print\\(list\\(m['net'].keys\\(\\)\\)[:5]\\)\")",
+      "Bash(/d/anaconda3/envs/adv-attack/python.exe generate_thesis_figures.py)",
+      "Bash(xelatex -interaction=nonstopmode main.tex)"
+    ],
+    "additionalDirectories": [
+      "D:\\软件\\南开大学论文模板2026"
     ]
   }
 }
