@@ -60,6 +60,8 @@ plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['savefig.bbox'] = 'tight'
 plt.rcParams['savefig.dpi'] = 150
+# 增大数据字体
+plt.rcParams['font.size'] = 13
 
 
 # ============================================================
@@ -159,7 +161,7 @@ def red_overlay(img, mask, alpha=0.7):
 def add_mask_legend(fig, color='red', label='遮蔽位置', loc='upper right'):
     """为整张图加 mask 颜色图例"""
     patch = mpatches.Patch(color=color, label=label)
-    fig.legend(handles=[patch], loc=loc, fontsize=9, framealpha=0.85)
+    fig.legend(handles=[patch], loc=loc, fontsize=13, framealpha=0.85)
 
 
 def status_color(pred, true_l):
@@ -200,7 +202,7 @@ def fig_minimal(model, model_name, model_short, attack_name, attack_short, attac
         no_success = False
     n = len(valid)
 
-    fig, axes = plt.subplots(3, n, figsize=(2.0 * n, 6.2))
+    fig, axes = plt.subplots(3, n, figsize=(2.2 * n, 7.0))
     if n == 1:
         axes = axes[:, None]
 
@@ -214,28 +216,28 @@ def fig_minimal(model, model_name, model_short, attack_name, attack_short, attac
 
         axes[0, c].imshow(img, cmap='gray', vmin=0, vmax=1)
         axes[0, c].set_title(title_pred(int(pred_o[0]), float(conf_o[0]), true_l),
-                             fontsize=8, color=status_color(int(pred_o[0]), true_l))
+                             fontsize=12, color=status_color(int(pred_o[0]), true_l))
         axes[0, c].axis('off')
 
         axes[1, c].imshow(x_a, cmap='gray', vmin=0, vmax=1)
         axes[1, c].set_title(title_pred(int(pred_a[0]), float(conf_a[0]), true_l),
-                             fontsize=8, color=status_color(int(pred_a[0]), true_l))
+                             fontsize=12, color=status_color(int(pred_a[0]), true_l))
         axes[1, c].axis('off')
 
         axes[2, c].imshow(red_overlay(img, m))
-        axes[2, c].set_title(f'{int(m.sum())}px', fontsize=8)
+        axes[2, c].set_title(f'{int(m.sum())}px', fontsize=12)
         axes[2, c].axis('off')
 
     for r, lab in enumerate(['原图', '攻击后', '遮蔽位置']):
-        axes[r, 0].text(-0.22, 0.5, lab, transform=axes[r, 0].transAxes,
-                        rotation=90, va='center', ha='center', fontsize=10)
+        axes[r, 0].text(-0.25, 0.5, lab, transform=axes[r, 0].transAxes,
+                        rotation=90, va='center', ha='center', fontsize=14)
 
     suc_rate = success.mean() * 100 if success is not None else 0.0
     suffix = '（无成功攻击：展示扰动最大样本）' if no_success else ''
     fig.suptitle(f'{model_name} × {attack_name} ({PARAM_TXT})  '
-                 f'成功率 {suc_rate:.1f}% {suffix}', fontsize=10.5)
+                 f'成功率 {suc_rate:.1f}% {suffix}', fontsize=15)
     add_mask_legend(fig, color='red', label='遮蔽像素', loc='upper right')
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
     save_fig(fig, 'min', f'min_{model_short}_{attack_short}')
 
 
@@ -256,7 +258,7 @@ def fig_saliency_overlay(model, model_name, model_short, n=N_SAMPLES):
     x_g = xs.detach().requires_grad_(True)
     sal = compute_saliency(model, x_g, ys).detach().cpu().numpy()[:, 0]
 
-    fig, axes = plt.subplots(4, n, figsize=(2.0 * n, 8.4))
+    fig, axes = plt.subplots(4, n, figsize=(2.2 * n, 9.2))
     if n == 1:
         axes = axes[:, None]
 
@@ -276,7 +278,7 @@ def fig_saliency_overlay(model, model_name, model_short, n=N_SAMPLES):
 
         axes[0, c].imshow(img, cmap='gray', vmin=0, vmax=1)
         axes[0, c].set_title(title_pred(int(pred_o[0]), float(conf_o[0]), true_l),
-                             fontsize=8, color=status_color(int(pred_o[0]), true_l))
+                             fontsize=12, color=status_color(int(pred_o[0]), true_l))
         axes[0, c].axis('off')
 
         axes[1, c].imshow(img, cmap='gray', alpha=0.4)
@@ -284,22 +286,22 @@ def fig_saliency_overlay(model, model_name, model_short, n=N_SAMPLES):
         axes[1, c].axis('off')
 
         axes[2, c].imshow(red_overlay(img, m))
-        axes[2, c].set_title(f'命中{hit:.0f}% / {int(m.sum())}px', fontsize=8)
+        axes[2, c].set_title(f'命中{hit:.0f}% / {int(m.sum())}px', fontsize=12)
         axes[2, c].axis('off')
 
         axes[3, c].imshow(x_a, cmap='gray', vmin=0, vmax=1)
         axes[3, c].set_title(title_pred(int(pred_a[0]), float(conf_a[0]), true_l),
-                             fontsize=8, color=status_color(int(pred_a[0]), true_l))
+                             fontsize=12, color=status_color(int(pred_a[0]), true_l))
         axes[3, c].axis('off')
 
     for r, lab in enumerate(['原图', '显著性热图', '遮蔽位置', '攻击结果']):
-        axes[r, 0].text(-0.22, 0.5, lab, transform=axes[r, 0].transAxes,
-                        rotation=90, va='center', ha='center', fontsize=10)
+        axes[r, 0].text(-0.25, 0.5, lab, transform=axes[r, 0].transAxes,
+                        rotation=90, va='center', ha='center', fontsize=14)
 
     fig.suptitle(f'{model_name}：Adaptive-Saliency 攻击的显著性与遮蔽位置关系 ({PARAM_TXT})  '
-                 f'平均命中率 {np.mean(hits):.1f}%', fontsize=10.5)
+                 f'平均命中率 {np.mean(hits):.1f}%', fontsize=15)
     add_mask_legend(fig, color='red', label='遮蔽像素', loc='upper right')
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
     save_fig(fig, 'sal_overlay', f'sal_{model_short}')
 
 
@@ -324,7 +326,7 @@ def fig_four_attacks(model, model_name, model_short, n_cases=N_SAMPLES):
     rng = np.random.RandomState(3)
     chosen = rng.choice(cand, min(n_cases, len(cand)), replace=False)
 
-    fig, axes = plt.subplots(len(chosen), 5, figsize=(11, 2.0 * len(chosen)))
+    fig, axes = plt.subplots(len(chosen), 5, figsize=(13, 2.3 * len(chosen)))
     if len(chosen) == 1:
         axes = axes[None, :]
     headers = ['原图'] + [r[0] for r in runs]
@@ -339,7 +341,7 @@ def fig_four_attacks(model, model_name, model_short, n_cases=N_SAMPLES):
         axes[r_idx, 0].set_title(
             (headers[0] + '\n' if r_idx == 0 else '')
             + title_pred(int(pred_o[0]), float(conf_o[0]), true_l),
-            fontsize=8, color=status_color(int(pred_o[0]), true_l))
+            fontsize=11, color=status_color(int(pred_o[0]), true_l))
         axes[r_idx, 0].axis('off')
 
         for c, (aname, ashort, x_adv, mask, success, mc) in enumerate(runs):
@@ -354,12 +356,12 @@ def fig_four_attacks(model, model_name, model_short, n_cases=N_SAMPLES):
             head = headers[c + 1] + '\n' if r_idx == 0 else ''
             ax.set_title(
                 head + title_pred(int(pred_a[0]), float(conf_a[0]), true_l),
-                fontsize=8, color=status_color(int(pred_a[0]), true_l))
+                fontsize=11, color=status_color(int(pred_a[0]), true_l))
             ax.axis('off')
 
     sub = ' | '.join([f'{k}{v:.1f}%' for k, v in overall_success.items() if v is not None])
-    fig.suptitle(f'{model_name}：四种遮蔽攻击对比 ({PARAM_TXT})  攻击成功率：{sub}', fontsize=10.5)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    fig.suptitle(f'{model_name}：四种遮蔽攻击对比 ({PARAM_TXT})  攻击成功率：{sub}', fontsize=15)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
     save_fig(fig, '4atk', f'4atk_{model_short}')
 
 
@@ -387,7 +389,7 @@ def fig_model_compare(models_dict, attack_name, attack_short, attack_factory, n_
     chosen = rng.choice(cand, min(n_cases, len(cand)), replace=False)
 
     n_models = len(models_dict)
-    fig, axes = plt.subplots(len(chosen), n_models + 1, figsize=(1.7 * (n_models + 1), 2.0 * len(chosen)))
+    fig, axes = plt.subplots(len(chosen), n_models + 1, figsize=(2.0 * (n_models + 1), 2.3 * len(chosen)))
     if len(chosen) == 1:
         axes = axes[None, :]
 
@@ -397,9 +399,9 @@ def fig_model_compare(models_dict, attack_name, attack_short, attack_factory, n_
         true_l = int(pool_y[idx])
         img = pool_x[idx, 0].cpu().numpy()
         axes[r_idx, 0].imshow(img, cmap='gray', vmin=0, vmax=1)
-        axes[r_idx, 0].set_title(headers[0] if r_idx == 0 else '', fontsize=9)
+        axes[r_idx, 0].set_title(headers[0] if r_idx == 0 else '', fontsize=12)
         axes[r_idx, 0].text(-0.25, 0.5, f'真:{true_l}', transform=axes[r_idx, 0].transAxes,
-                            rotation=90, va='center', ha='center', fontsize=9)
+                            rotation=90, va='center', ha='center', fontsize=12)
         axes[r_idx, 0].axis('off')
 
         for c, (mname, mshort, m) in enumerate(models_dict):
@@ -418,13 +420,13 @@ def fig_model_compare(models_dict, attack_name, attack_short, attack_factory, n_
             color = 'red' if success[idx] else 'green'
             ax.set_title(
                 head + title_pred(int(pred_a[0]), float(conf_a[0]), true_l),
-                fontsize=7.5, color=color)
+                fontsize=10, color=color)
             ax.axis('off')
 
     fig.suptitle(f'{attack_name} 攻击下七种模型对比 ({PARAM_TXT})  '
-                 f'红块=遮蔽位置；标题颜色：绿=防御成功，红=被攻破', fontsize=10)
+                 f'红块=遮蔽位置；标题颜色：绿=防御成功，红=被攻破', fontsize=14)
     add_mask_legend(fig, color='red', label='遮蔽位置', loc='upper right')
-    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     save_fig(fig, 'model_cmp', f'cmp_{attack_short}')
 
 
@@ -461,7 +463,7 @@ def fig_adaptive_inner(model, model_name, model_short, attack_kind, n_samples=N_
         snapshots[n_iter] = (x_adv_n, mask_n)
 
     n_cols = N_ADA + 1  # 原图 + N 步
-    fig, axes = plt.subplots(len(chosen), n_cols, figsize=(1.6 * n_cols, 1.9 * len(chosen)))
+    fig, axes = plt.subplots(len(chosen), n_cols, figsize=(1.8 * n_cols, 2.2 * len(chosen)))
     if len(chosen) == 1:
         axes = axes[None, :]
 
@@ -472,7 +474,7 @@ def fig_adaptive_inner(model, model_name, model_short, attack_kind, n_samples=N_
         axes[r_idx, 0].imshow(img, cmap='gray', vmin=0, vmax=1)
         head = '原图\n' if r_idx == 0 else ''
         axes[r_idx, 0].set_title(head + title_pred(int(pred_o[0]), float(conf_o[0]), true_l),
-                                 fontsize=7.5, color=status_color(int(pred_o[0]), true_l))
+                                 fontsize=10.5, color=status_color(int(pred_o[0]), true_l))
         axes[r_idx, 0].axis('off')
 
         for c in range(N_ADA):
@@ -485,13 +487,13 @@ def fig_adaptive_inner(model, model_name, model_short, attack_kind, n_samples=N_
             pred_a, conf_a = predict(model, x_adv_n[idx:idx + 1])
             head = f'n={n_iter}\n' if r_idx == 0 else ''
             ax.set_title(head + title_pred(int(pred_a[0]), float(conf_a[0]), true_l),
-                         fontsize=7.5, color=status_color(int(pred_a[0]), true_l))
+                         fontsize=10.5, color=status_color(int(pred_a[0]), true_l))
             ax.axis('off')
 
     fig.suptitle(f'{model_name}：{atk_label} 攻击内部演化 (R={R_ADA}, kernel={KERNEL}; 红块=本步遮蔽累计位置)',
-                 fontsize=10)
+                 fontsize=14)
     add_mask_legend(fig, color='red', label='遮蔽像素', loc='upper right')
-    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     save_fig(fig, 'ada_inner', f'ainner_{attack_kind}_{model_short}')
 
 
@@ -520,7 +522,7 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
     rng = np.random.RandomState(11)
     chosen = rng.choice(cand, min(n_samples, len(cand)), replace=False)
 
-    fig, axes = plt.subplots(len(chosen), 4, figsize=(8.6, 2.0 * len(chosen)))
+    fig, axes = plt.subplots(len(chosen), 4, figsize=(10, 2.4 * len(chosen)))
     if len(chosen) == 1:
         axes = axes[None, :]
 
@@ -539,9 +541,9 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
 
         # col 0: 原图
         axes[r_idx, 0].imshow(img, cmap='gray', vmin=0, vmax=1)
-        axes[r_idx, 0].set_title(headers[0] if r_idx == 0 else '', fontsize=9)
+        axes[r_idx, 0].set_title(headers[0] if r_idx == 0 else '', fontsize=12)
         axes[r_idx, 0].text(-0.25, 0.5, f'真:{true_l}', transform=axes[r_idx, 0].transAxes,
-                            rotation=90, va='center', ha='center', fontsize=9)
+                            rotation=90, va='center', ha='center', fontsize=12)
         axes[r_idx, 0].axis('off')
 
         # col 1: Fixed mask (red)
@@ -550,7 +552,7 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
         head = headers[1] + '\n' if r_idx == 0 else ''
         axes[r_idx, 1].set_title(head + f'{int(mf.sum())}px ' +
                                  title_pred(int(pred_f[0]), float(conf_f[0]), true_l),
-                                 fontsize=7.5, color=status_color(int(pred_f[0]), true_l))
+                                 fontsize=10.5, color=status_color(int(pred_f[0]), true_l))
         axes[r_idx, 1].axis('off')
 
         # col 2: Adaptive mask (blue)
@@ -563,7 +565,7 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
         head = headers[2] + '\n' if r_idx == 0 else ''
         axes[r_idx, 2].set_title(head + f'{int(ma.sum())}px ' +
                                  title_pred(int(pred_a[0]), float(conf_a[0]), true_l),
-                                 fontsize=7.5, color=status_color(int(pred_a[0]), true_l))
+                                 fontsize=10.5, color=status_color(int(pred_a[0]), true_l))
         axes[r_idx, 2].axis('off')
 
         # col 3: 重叠（red+blue=purple）
@@ -575,18 +577,18 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
         ovr_pct = overlap.sum() / max(1, ((mf > 0) | (ma > 0)).sum()) * 100
         axes[r_idx, 3].imshow(rgb2)
         head = headers[3] + '\n' if r_idx == 0 else ''
-        axes[r_idx, 3].set_title(head + f'IoU={ovr_pct:.0f}%', fontsize=7.5)
+        axes[r_idx, 3].set_title(head + f'IoU={ovr_pct:.0f}%', fontsize=10.5)
         axes[r_idx, 3].axis('off')
 
-    fig.suptitle(f'{model_name}：Fixed-{attribution} vs Adaptive-{attribution} 遮蔽位置对比', fontsize=10.5)
+    fig.suptitle(f'{model_name}：Fixed-{attribution} vs Adaptive-{attribution} 遮蔽位置对比', fontsize=15)
     # 多色图例
     handles = [
         mpatches.Patch(color='red',   label=f'Fixed-{attribution} 遮蔽'),
         mpatches.Patch(color='blue',  label=f'Adaptive-{attribution} 遮蔽'),
         mpatches.Patch(color='magenta', label='两者重叠像素'),
     ]
-    fig.legend(handles=handles, loc='upper right', fontsize=8, framealpha=0.85)
-    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.legend(handles=handles, loc='upper right', fontsize=12, framealpha=0.85)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     save_fig(fig, 'fix_vs_ada', f'fva_{attribution}_{model_short}')
 
 
