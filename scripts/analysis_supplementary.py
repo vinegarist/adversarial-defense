@@ -51,6 +51,12 @@ plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['savefig.bbox'] = 'tight'
 plt.rcParams['savefig.dpi'] = 200
+plt.rcParams['font.size'] = 16
+plt.rcParams['axes.titlesize'] = 16
+plt.rcParams['axes.labelsize'] = 16
+plt.rcParams['legend.fontsize'] = 16
+plt.rcParams['xtick.labelsize'] = 14
+plt.rcParams['ytick.labelsize'] = 14
 
 
 def load_model(filename):
@@ -157,13 +163,24 @@ def figure_fixed_vs_adaptive(model, n_samples=5):
     # 行2: Fixed 遮蔽块的"叠加可视化"（颜色编码每一块；重叠区高亮）
     # 行3: Fixed 最终 mask 应用后的图像
     # 行4: Adaptive mask 应用后的图像
-    fig, axes = plt.subplots(4, n_samples, figsize=(2.0 * n_samples, 8.4))
+    fig, axes = plt.subplots(
+        4, n_samples + 1, figsize=(2.0 * n_samples + 1.3, 6.8),
+        gridspec_kw={'width_ratios': [0.7] + [1] * n_samples}
+    )
+    row_labels = ['原图', 'Fixed叠加\n越亮越重叠',
+                  f'Fixed最终\n上限{theoretical}px',
+                  f'Adaptive早停\nN={N}, R={R}']
+    for r_, lab in enumerate(row_labels):
+        axes[r_, 0].axis('off')
+        axes[r_, 0].text(0.5, 0.5, lab, transform=axes[r_, 0].transAxes,
+                         va='center', ha='center', fontsize=18)
     for j in range(n_samples):
+        col = j + 1
         # 原图
         img = xs[j, 0].cpu().numpy()
-        axes[0, j].imshow(img, cmap='gray', vmin=0, vmax=1)
-        axes[0, j].set_title(f'label={int(ys[j])}', fontsize=10)
-        axes[0, j].axis('off')
+        axes[0, col].imshow(img, cmap='gray', vmin=0, vmax=1)
+        axes[0, col].set_title(f'label={int(ys[j])}', fontsize=20)
+        axes[0, col].axis('off')
 
         # Fixed 多块叠加（用 jet 显示每块的次序，重叠处累加 -> 颜色更亮）
         block_overlay = per_block[j].sum(dim=0).cpu().numpy()  # [H,W] 0..top_k
@@ -173,39 +190,40 @@ def figure_fixed_vs_adaptive(model, n_samples=5):
         rgb[..., 0] = np.clip(rgb[..., 0] + red_alpha * 0.9, 0, 1)
         rgb[..., 1] = rgb[..., 1] * (1 - red_alpha * 0.6)
         rgb[..., 2] = rgb[..., 2] * (1 - red_alpha * 0.6)
-        axes[1, j].imshow(rgb)
+        axes[1, col].imshow(rgb)
         # 重叠像素数标注
         ov_px = int((block_overlay > 1).sum())
-        axes[1, j].set_title(f'重叠像素={ov_px}', fontsize=9, color='#C0392B')
-        axes[1, j].axis('off')
+        axes[1, col].text(0.5, 0.09, f'{ov_px}px', transform=axes[1, col].transAxes,
+                          ha='center', va='bottom', fontsize=18, color='#C0392B')
+        axes[1, col].axis('off')
 
         # Fixed 最终遮蔽
         m = full_mask_fix[j, 0].cpu().numpy()
         x_fix = img * (1 - m)
-        axes[2, j].imshow(x_fix, cmap='gray', vmin=0, vmax=1)
-        axes[2, j].set_title(f'Fixed: {int(actual_fix[j])}px', fontsize=9)
-        axes[2, j].axis('off')
+        axes[2, col].imshow(x_fix, cmap='gray', vmin=0, vmax=1)
+        axes[2, col].text(0.5, 0.09, f'{int(actual_fix[j])}px',
+                          transform=axes[2, col].transAxes,
+                          ha='center', va='bottom', fontsize=18, color='white')
+        axes[2, col].axis('off')
 
         # Adaptive 最终遮蔽
         x_ad = x_adv_ada[j, 0].cpu().numpy()
-        axes[3, j].imshow(x_ad, cmap='gray', vmin=0, vmax=1)
-        axes[3, j].set_title(f'Adaptive: {int(actual_ada[j])}px', fontsize=9)
-        axes[3, j].axis('off')
+        axes[3, col].imshow(x_ad, cmap='gray', vmin=0, vmax=1)
+        axes[3, col].text(0.5, 0.09, f'{int(actual_ada[j])}px',
+                          transform=axes[3, col].transAxes,
+                          ha='center', va='bottom', fontsize=18, color='white')
+        axes[3, col].axis('off')
 
     # 行标题
-    row_labels = ['原始样本', 'Fixed 遮蔽块叠加\n(红色越亮=重叠越严重)',
-                  f'Fixed 最终遮蔽\n(理论上限{theoretical}px)',
-                  f'Adaptive 早停遮蔽\n(N={N},R={R})']
+    row_labels = ['原图', 'Fixed叠加\n(越亮越重叠)',
+                  f'Fixed最终\n(上限{theoretical}px)',
+                  f'Adaptive早停\n(N={N},R={R})']
     for r_, lab in enumerate(row_labels):
-        axes[r_, 0].text(-0.18, 0.5, lab, transform=axes[r_, 0].transAxes,
-                         rotation=90, va='center', ha='center', fontsize=10)
+        # Row labels are already drawn in the dedicated left column above.
+        pass
 
-    plt.suptitle(
-        f'Fixed vs Adaptive 遮蔽对比：Fixed 平均实际遮蔽 {actual_fix.mean():.1f}px '
-        f'(重叠率 {overlap_ratio.mean():.1f}%)，Adaptive 平均 {actual_ada.mean():.1f}px',
-        fontsize=11, y=1.02
-    )
     plt.tight_layout()
+    plt.subplots_adjust(hspace=0.06, wspace=0.04)
     return fig, dict(actual_fix=actual_fix.tolist(),
                      overlap_ratio=overlap_ratio.tolist(),
                      actual_ada=actual_ada.tolist(),
@@ -237,7 +255,7 @@ def figure_saliency_vs_ig(model_std, model_pgd, n_samples=4):
     ig_pgd = ig_attr(model_pgd, xs, ys)
 
     # 5 行 × n_samples：原图 / Sal-Std / Sal-PGD / IG-Std / IG-PGD
-    fig, axes = plt.subplots(5, n_samples, figsize=(2.1 * n_samples, 10.5))
+    fig, axes = plt.subplots(5, n_samples, figsize=(1.85 * n_samples, 10.5))
 
     def norm(a):
         a = np.abs(a)
@@ -248,7 +266,7 @@ def figure_saliency_vs_ig(model_std, model_pgd, n_samples=4):
     for j in range(n_samples):
         img = xs[j, 0].cpu().numpy()
         axes[0, j].imshow(img, cmap='gray', vmin=0, vmax=1)
-        axes[0, j].set_title(f'label={int(ys[j])}', fontsize=10)
+        axes[0, j].set_title(f'label={int(ys[j])}', fontsize=17)
         axes[0, j].axis('off')
 
         for r_, data, cmap in [
@@ -268,12 +286,10 @@ def figure_saliency_vs_ig(model_std, model_pgd, n_samples=4):
                   'IG (n_steps=50)\n(PGD-AT)']
     for r_, lab in enumerate(row_labels):
         axes[r_, 0].text(-0.22, 0.5, lab, transform=axes[r_, 0].transAxes,
-                         rotation=90, va='center', ha='center', fontsize=10)
+                         rotation=90, va='center', ha='center', fontsize=17)
 
-    plt.suptitle('两种归因方法在 Standard 与 PGD-AT 模型上的差异——'
-                 'PGD-AT 使 IG 归因更分散（梯度掩蔽对路径积分的系统性干扰）',
-                 fontsize=10.5, y=1.01)
     plt.tight_layout()
+    plt.subplots_adjust(wspace=0.03, hspace=0.14)
 
     # 量化：每个归因图的"集中度"（前 9 像素之和占总和的比例）
     def concentration(a):
@@ -314,11 +330,11 @@ def figure_transfer_anomaly():
     for bs in (bars1, bars2):
         for b in bs:
             ax1.text(b.get_x() + b.get_width() / 2, b.get_height() + 1.5,
-                     f'{b.get_height():.2f}%', ha='center', fontsize=9)
+                     f'{b.get_height():.2f}%', ha='center', fontsize=13)
 
     ax1.set_ylabel('防御准确率 (%)')
     ax1.set_xticks(x)
-    ax1.set_xticklabels(methods, fontsize=10)
+    ax1.set_xticklabels(methods, fontsize=14)
     ax1.set_ylim(0, 110)
     ax1.set_title('Adaptive-Saliency-AT(N=5,R=3) 在白盒 vs 迁移攻击下的准确率')
     ax1.legend(loc='lower right')
@@ -330,18 +346,14 @@ def figure_transfer_anomaly():
     for b, g in zip(bars3, gap):
         ax2.text(g + (1 if g >= 0 else -1), b.get_y() + b.get_height() / 2,
                  f'{g:+.2f}', va='center',
-                 ha='left' if g >= 0 else 'right', fontsize=9)
+                 ha='left' if g >= 0 else 'right', fontsize=13)
     ax2.axvline(0, color='k', lw=0.8)
     ax2.set_xlabel('迁移 − 白盒 (百分点)')
     ax2.set_title('差距：>0 意味着白盒比迁移更脆弱')
     ax2.grid(axis='x', alpha=0.3)
 
-    plt.suptitle(
-        '梯度掩蔽现象：Adaptive-Saliency-AT 对白盒 PGD 仅 4.63%，但对迁移 PGD 达 93.98%（差距+89.35）；'
-        '\n而遮蔽攻击白盒 94.30% vs 迁移 91.96%（差距-2.34），说明遮蔽攻击迁移性强、不依赖梯度掩蔽',
-        fontsize=10
-    )
     plt.tight_layout()
+    plt.subplots_adjust(wspace=0.18)
     return fig
 
 

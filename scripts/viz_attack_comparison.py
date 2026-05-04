@@ -38,8 +38,13 @@ plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['savefig.bbox'] = 'tight'
 plt.rcParams['savefig.dpi'] = 150
-# 增大数据字体
-plt.rcParams['font.size'] = 12
+# 增大论文图片字体
+plt.rcParams['font.size'] = 16
+plt.rcParams['axes.titlesize'] = 16
+plt.rcParams['axes.labelsize'] = 16
+plt.rcParams['legend.fontsize'] = 16
+plt.rcParams['xtick.labelsize'] = 14
+plt.rcParams['ytick.labelsize'] = 14
 
 N_SAMPLES = 5
 
@@ -127,8 +132,8 @@ def run_adaptive_attack_get_mask(model, x, y, N, R):
 
 def title_pred(pred, conf, true_l):
     """标题格式."""
-    ok = 'OK' if pred == true_l else 'X'
-    return f'真:{true_l} 预:{pred}({conf:.0f}%) {ok}'
+    c = conf * 100 if conf <= 1.0 else conf
+    return f'{true_l}->{pred}({c:.0f}%)'
 
 
 def status_color(pred, true_l):
@@ -182,7 +187,7 @@ def fig_fixed_saliency(model, xs, ys):
             if len(success_samples) >= N_SAMPLES:
                 break
 
-    fig, axes = plt.subplots(N_SAMPLES, len(k_values) + 1, figsize=(12, 2.5 * N_SAMPLES))
+    fig, axes = plt.subplots(N_SAMPLES, len(k_values) + 1, figsize=(12.0, 2.5 * N_SAMPLES))
 
     for row, idx in enumerate(success_samples[:N_SAMPLES]):
         true_l = ys[idx].item()
@@ -193,10 +198,10 @@ def fig_fixed_saliency(model, xs, ys):
         pred_o, conf_o = predict(model, x_orig)
         axes[row, 0].imshow(img_orig, cmap='gray', vmin=-0.5, vmax=2.5)
         if row == 0:
-            axes[row, 0].set_title('原图\n干净准确率99%', fontsize=14)
+            axes[row, 0].set_title('原图\n干净准确率99%', fontsize=20)
         axes[row, 0].text(-0.18, 0.5, title_pred(pred_o[0], conf_o[0], true_l),
                          transform=axes[row, 0].transAxes, rotation=90,
-                         va='center', ha='center', fontsize=11,
+                         va='center', ha='center', fontsize=17,
                          color=status_color(pred_o[0], true_l))
         axes[row, 0].axis('off')
 
@@ -214,20 +219,18 @@ def fig_fixed_saliency(model, xs, ys):
             axes[row, col+1].imshow(rgb)
             if row == 0:
                 acc_map = {3: 86.82, 5: 80.99, 9: 71.19}
-                axes[row, col+1].set_title(f'Fixed-Saliency\nk={k}, kernel={kernel_size}\n准确率{acc_map[k]}%', fontsize=13)
+                axes[row, col+1].set_title(f'Fixed-Sal\nk={k}\nkernel={kernel_size}\n准确率{acc_map[k]}%', fontsize=18)
             axes[row, col+1].text(-0.18, 0.5, title_pred(pred_a[0], conf_a[0], true_l),
                                   transform=axes[row, col+1].transAxes, rotation=90,
-                                  va='center', ha='center', fontsize=11,
+                                  va='center', ha='center', fontsize=17,
                                   color=status_color(pred_a[0], true_l))
             axes[row, col+1].text(0.92, 0.05, f'{int(mask.sum())}px',
                                  transform=axes[row, col+1].transAxes,
-                                 fontsize=10, ha='right', color='darkred')
+                                 fontsize=16, ha='right', color='darkred')
             axes[row, col+1].axis('off')
 
-    handles = [mpatches.Patch(color='red', alpha=0.5, label='遮蔽区域')]
-    fig.legend(handles=handles, loc='upper right', fontsize=12)
-    fig.suptitle('Fixed-Saliency遮蔽攻击效果（标准模型）\n参数说明：k为遮蔽区域数，kernel_size为遮蔽块大小', fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.06, hspace=0.18)
 
     os.makedirs(THESIS_FIG_DIR, exist_ok=True)
     fig.savefig(os.path.join(THESIS_FIG_DIR, 'fixed_saliency_compare.png'))
@@ -262,7 +265,7 @@ def fig_adaptive_n(model, xs, ys):
             if len(success_samples) >= N_SAMPLES:
                 break
 
-    fig, axes = plt.subplots(N_SAMPLES, len(N_values) + 1, figsize=(10, 2.2 * N_SAMPLES))
+    fig, axes = plt.subplots(N_SAMPLES, len(N_values) + 1, figsize=(12.0, 2.25 * N_SAMPLES))
 
     for row, idx in enumerate(success_samples[:N_SAMPLES]):
         true_l = ys[idx].item()
@@ -272,10 +275,10 @@ def fig_adaptive_n(model, xs, ys):
         pred_o, conf_o = predict(model, x_orig)
         axes[row, 0].imshow(img_orig, cmap='gray', vmin=-0.5, vmax=2.5)
         if row == 0:
-            axes[row, 0].set_title('原图\n干净准确率99%', fontsize=14)
+            axes[row, 0].set_title('原图\n干净准确率99%', fontsize=20)
         axes[row, 0].text(-0.18, 0.5, title_pred(pred_o[0], conf_o[0], true_l),
                          transform=axes[row, 0].transAxes, rotation=90,
-                         va='center', ha='center', fontsize=11,
+                         va='center', ha='center', fontsize=17,
                          color=status_color(pred_o[0], true_l))
         axes[row, 0].axis('off')
 
@@ -289,20 +292,18 @@ def fig_adaptive_n(model, xs, ys):
             axes[row, col+1].imshow(rgb)
             if row == 0:
                 acc_map = {3: 49.45, 5: 34.33, 10: 15.95}
-                axes[row, col+1].set_title(f'Adaptive-Saliency\nN={N}, R={R_fixed}\n准确率{acc_map[N]}%', fontsize=9)
+                axes[row, col+1].set_title(f'Ada-Sal\nN={N}, R={R_fixed}\n准确率{acc_map[N]}%', fontsize=18)
             axes[row, col+1].text(-0.15, 0.5, title_pred(pred_a[0], conf_a[0], true_l),
                                   transform=axes[row, col+1].transAxes, rotation=90,
-                                  va='center', ha='center', fontsize=8,
+                                  va='center', ha='center', fontsize=16,
                                   color=status_color(pred_a[0], true_l))
             axes[row, col+1].text(0.95, 0.05, f'{int(mask.sum())}px',
                                  transform=axes[row, col+1].transAxes,
-                                 fontsize=7, ha='right', color='darkblue')
+                                 fontsize=15, ha='right', color='darkblue')
             axes[row, col+1].axis('off')
 
-    handles = [mpatches.Patch(color='blue', alpha=0.5, label='遮蔽区域')]
-    fig.legend(handles=handles, loc='upper right', fontsize=12)
-    fig.suptitle('Adaptive-Saliency遮蔽攻击效果（标准模型）\n固定R=3，变化N（迭代次数）', fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.06, hspace=0.18)
 
     fig.savefig(os.path.join(THESIS_FIG_DIR, 'adaptive_saliency_N_compare.png'))
     plt.close(fig)
@@ -336,7 +337,7 @@ def fig_adaptive_r(model, xs, ys):
             if len(success_samples) >= N_SAMPLES:
                 break
 
-    fig, axes = plt.subplots(N_SAMPLES, len(R_values) + 1, figsize=(10, 2.2 * N_SAMPLES))
+    fig, axes = plt.subplots(N_SAMPLES, len(R_values) + 1, figsize=(12.0, 2.25 * N_SAMPLES))
 
     for row, idx in enumerate(success_samples[:N_SAMPLES]):
         true_l = ys[idx].item()
@@ -346,10 +347,10 @@ def fig_adaptive_r(model, xs, ys):
         pred_o, conf_o = predict(model, x_orig)
         axes[row, 0].imshow(img_orig, cmap='gray', vmin=-0.5, vmax=2.5)
         if row == 0:
-            axes[row, 0].set_title('原图\n干净准确率99%', fontsize=14)
+            axes[row, 0].set_title('原图\n干净准确率99%', fontsize=20)
         axes[row, 0].text(-0.18, 0.5, title_pred(pred_o[0], conf_o[0], true_l),
                          transform=axes[row, 0].transAxes, rotation=90,
-                         va='center', ha='center', fontsize=11,
+                         va='center', ha='center', fontsize=17,
                          color=status_color(pred_o[0], true_l))
         axes[row, 0].axis('off')
 
@@ -364,20 +365,18 @@ def fig_adaptive_r(model, xs, ys):
             axes[row, col+1].imshow(rgb)
             if row == 0:
                 acc_map = {2: 49.15, 3: 34.33, 4: 23.91}
-                axes[row, col+1].set_title(f'Adaptive-Saliency\nN={N_fixed}, R={R}, kernel={kernel_size}\n准确率{acc_map[R]}%', fontsize=9)
+                axes[row, col+1].set_title(f'Ada-Sal\nN={N_fixed}, R={R}\nkernel={kernel_size}\n准确率{acc_map[R]}%', fontsize=18)
             axes[row, col+1].text(-0.15, 0.5, title_pred(pred_a[0], conf_a[0], true_l),
                                   transform=axes[row, col+1].transAxes, rotation=90,
-                                  va='center', ha='center', fontsize=8,
+                                  va='center', ha='center', fontsize=16,
                                   color=status_color(pred_a[0], true_l))
             axes[row, col+1].text(0.95, 0.05, f'{int(mask.sum())}px',
                                  transform=axes[row, col+1].transAxes,
-                                 fontsize=7, ha='right', color='darkblue')
+                                 fontsize=15, ha='right', color='darkblue')
             axes[row, col+1].axis('off')
 
-    handles = [mpatches.Patch(color='blue', alpha=0.5, label='遮蔽区域')]
-    fig.legend(handles=handles, loc='upper right', fontsize=12)
-    fig.suptitle('Adaptive-Saliency遮蔽攻击效果（标准模型）\n固定N=5，变化R（遮蔽半径，kernel_size=2R+1）', fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.06, hspace=0.18)
 
     fig.savefig(os.path.join(THESIS_FIG_DIR, 'adaptive_saliency_R_compare.png'))
     plt.close(fig)

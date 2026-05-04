@@ -32,17 +32,17 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # 大字体配置 - 主要修改部分
 # =============================================================================
 # 基础字体大小从12增大到16
-BASE_FONT_SIZE = 16
+BASE_FONT_SIZE = 20
 # 标题字体大小从14增大到20
-TITLE_FONT_SIZE = 20
+TITLE_FONT_SIZE = 26
 # 轴标签字体大小从14增大到18
-LABEL_FONT_SIZE = 18
+LABEL_FONT_SIZE = 24
 # 刻度字体大小
-TICK_FONT_SIZE = 14
+TICK_FONT_SIZE = 20
 # 图例字体大小从10增大到14
-LEGEND_FONT_SIZE = 14
+LEGEND_FONT_SIZE = 20
 # 注释字体大小
-ANNOT_FONT_SIZE = 12
+ANNOT_FONT_SIZE = 18
 
 # 设置中文字体
 matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'DejaVu Sans']
@@ -149,7 +149,7 @@ class ThesisFigureGenerator:
         df = self.data['training_history']
         epochs = df['epoch'].values
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15.5, 6.5))
 
         # 左图: 准确率曲线
         ax1.plot(epochs, df['test_clean_acc'].values, 'b-', linewidth=2.5,
@@ -160,7 +160,6 @@ class ThesisFigureGenerator:
                  label='测试集鲁棒准确率')
         ax1.set_xlabel('训练轮次 (Epoch)', fontsize=LABEL_FONT_SIZE)
         ax1.set_ylabel('准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax1.set_title('Adaptive-Saliency-AT(N=5,R=3) 准确率曲线', fontsize=TITLE_FONT_SIZE)
         ax1.legend(loc='lower right', fontsize=LEGEND_FONT_SIZE)
         ax1.grid(True, alpha=0.3)
         ax1.set_xlim([1, 50])
@@ -174,13 +173,13 @@ class ThesisFigureGenerator:
                  label='测试损失')
         ax2.set_xlabel('训练轮次 (Epoch)', fontsize=LABEL_FONT_SIZE)
         ax2.set_ylabel('损失值', fontsize=LABEL_FONT_SIZE)
-        ax2.set_title('Adaptive-Saliency-AT(N=5,R=3) 损失曲线', fontsize=TITLE_FONT_SIZE)
         ax2.legend(loc='upper right', fontsize=LEGEND_FONT_SIZE)
         ax2.grid(True, alpha=0.3)
         ax2.set_xlim([1, 50])
         ax2.tick_params(labelsize=TICK_FONT_SIZE)
 
         plt.tight_layout()
+        plt.subplots_adjust(wspace=0.35)
         output_path = OUTPUT_DIR / "exp_training_curves.pdf"
         plt.savefig(output_path, format='pdf')
         plt.savefig(OUTPUT_DIR / "exp_training_curves.png", format='png')
@@ -202,7 +201,7 @@ class ThesisFigureGenerator:
         adaptive = df[df['Model'] == 'Adaptive-Saliency-AT']
         mix = df[df['Model'] == 'Mix-AT']
 
-        fig, ax = plt.subplots(figsize=(10, 7))
+        fig, ax = plt.subplots(figsize=(12, 8))
 
         # 绘制折线
         ax.plot(standard['N'].values, standard['Accuracy'].values,
@@ -217,7 +216,6 @@ class ThesisFigureGenerator:
 
         ax.set_xlabel('遮蔽区域数 N', fontsize=LABEL_FONT_SIZE)
         ax.set_ylabel('准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax.set_title('N参数敏感性分析 (R=3)', fontsize=TITLE_FONT_SIZE)
         ax.legend(loc='lower left', fontsize=LEGEND_FONT_SIZE)
         ax.grid(True, alpha=0.3)
         ax.set_xticks([3, 5, 7, 10])
@@ -245,7 +243,7 @@ class ThesisFigureGenerator:
         adaptive = df[df['Model'] == 'Adaptive-Saliency-AT']
         mix = df[df['Model'] == 'Mix-AT']
 
-        fig, ax = plt.subplots(figsize=(10, 7))
+        fig, ax = plt.subplots(figsize=(12, 8))
 
         # 绘制折线
         ax.plot(standard['R'].values, standard['Accuracy'].values,
@@ -260,7 +258,6 @@ class ThesisFigureGenerator:
 
         ax.set_xlabel('遮蔽半径 R', fontsize=LABEL_FONT_SIZE)
         ax.set_ylabel('准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax.set_title('R参数敏感性分析 (N=5)', fontsize=TITLE_FONT_SIZE)
         ax.legend(loc='lower left', fontsize=LEGEND_FONT_SIZE)
         ax.grid(True, alpha=0.3)
         ax.set_xticks([2, 3, 4])
@@ -295,7 +292,7 @@ class ThesisFigureGenerator:
         x = np.arange(len(models_to_show))
         width = 0.15
 
-        fig, ax = plt.subplots(figsize=(14, 7))
+        fig, ax = plt.subplots(figsize=(16, 8.5))
 
         for i, (col, label) in enumerate(zip(attack_cols, attack_labels)):
             values = []
@@ -306,23 +303,15 @@ class ThesisFigureGenerator:
                 else:
                     values.append(0)
 
-            bars = ax.bar(x + i * width, values, width, label=label)
+            ax.bar(x + i * width, values, width, label=label)
 
             # 在柱状图上显示数值
-            for bar, val in zip(bars, values):
-                if val > 0:
-                    ax.annotate(f'{val:.1f}',
-                               xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                               xytext=(0, 3),
-                               textcoords="offset points",
-                               ha='center', va='bottom', fontsize=ANNOT_FONT_SIZE)
 
         # 设置x轴标签
         model_labels = ['Standard\n(标准模型)', 'PGD-AT', 'Adaptive-Saliency-AT\n(N=5,R=3)', 'Mix-AT']
         ax.set_xticks(x + width * 2)
         ax.set_xticklabels(model_labels, fontsize=TICK_FONT_SIZE)
         ax.set_ylabel('准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax.set_title('各防御策略在不同攻击下的准确率对比', fontsize=TITLE_FONT_SIZE)
         ax.legend(loc='upper right', ncol=2, fontsize=LEGEND_FONT_SIZE)
         ax.grid(True, alpha=0.3, axis='y')
         ax.set_ylim([0, 110])
@@ -366,7 +355,7 @@ class ThesisFigureGenerator:
         mix_values += mix_values[:1]
         angles += angles[:1]
 
-        fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(polar=True))
 
         ax.plot(angles, adaptive_values, 'o-', linewidth=2.5,
                 color=COLORS['adaptive_saliency'], label='Adaptive-Saliency-AT', markersize=10)
@@ -379,9 +368,8 @@ class ThesisFigureGenerator:
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(labels, fontsize=TICK_FONT_SIZE)
         ax.set_ylim(0, 100)
+        ax.tick_params(labelsize=TICK_FONT_SIZE)
         ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.0), fontsize=LEGEND_FONT_SIZE)
-        ax.set_title('Adaptive-Saliency-AT vs Mix-AT 性能对比', fontsize=TITLE_FONT_SIZE, y=1.08)
-
         plt.tight_layout()
         output_path = OUTPUT_DIR / "exp_radar_comparison.pdf"
         plt.savefig(output_path, format='pdf')
@@ -415,7 +403,6 @@ class ThesisFigureGenerator:
 
         ax.set_xlabel('攻击参数', fontsize=LABEL_FONT_SIZE)
         ax.set_ylabel('模型准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax.set_title('遮蔽攻击效果对比（标准模型）', fontsize=TITLE_FONT_SIZE)
         ax.set_xticks(list(x_fixed) + list(x_adaptive))
         ax.set_xticklabels([f'k={k}' for k in fixed_k] + [f'N={n}' for n in adaptive_N],
                           fontsize=TICK_FONT_SIZE)
@@ -523,7 +510,6 @@ class ThesisFigureGenerator:
                            xytext=(0, 3), textcoords="offset points",
                            ha='center', va='bottom', fontsize=ANNOT_FONT_SIZE)
 
-        plt.suptitle('Saliency Map与Integrated Gradients方法对比', fontsize=TITLE_FONT_SIZE+2, fontweight='bold')
         plt.tight_layout()
         output_path = OUTPUT_DIR / "exp_saliency_vs_ig.pdf"
         plt.savefig(output_path, format='pdf')
