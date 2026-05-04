@@ -32,15 +32,15 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # 大字体配置 - 主要修改部分
 # =============================================================================
 # 基础字体大小从12增大到16
-BASE_FONT_SIZE = 20
+BASE_FONT_SIZE = 24
 # 标题字体大小从14增大到20
 TITLE_FONT_SIZE = 26
 # 轴标签字体大小从14增大到18
-LABEL_FONT_SIZE = 24
+LABEL_FONT_SIZE = 30
 # 刻度字体大小
-TICK_FONT_SIZE = 20
+TICK_FONT_SIZE = 26
 # 图例字体大小从10增大到14
-LEGEND_FONT_SIZE = 20
+LEGEND_FONT_SIZE = 28
 # 注释字体大小
 ANNOT_FONT_SIZE = 18
 
@@ -201,7 +201,7 @@ class ThesisFigureGenerator:
         adaptive = df[df['Model'] == 'Adaptive-Saliency-AT']
         mix = df[df['Model'] == 'Mix-AT']
 
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax = plt.subplots(figsize=(15.5, 9.0))
 
         # 绘制折线
         ax.plot(standard['N'].values, standard['Accuracy'].values,
@@ -216,7 +216,7 @@ class ThesisFigureGenerator:
 
         ax.set_xlabel('遮蔽区域数 N', fontsize=LABEL_FONT_SIZE)
         ax.set_ylabel('准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax.legend(loc='lower left', fontsize=LEGEND_FONT_SIZE)
+        ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=30)
         ax.grid(True, alpha=0.3)
         ax.set_xticks([3, 5, 7, 10])
         ax.tick_params(labelsize=TICK_FONT_SIZE)
@@ -243,7 +243,7 @@ class ThesisFigureGenerator:
         adaptive = df[df['Model'] == 'Adaptive-Saliency-AT']
         mix = df[df['Model'] == 'Mix-AT']
 
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax = plt.subplots(figsize=(15.5, 9.0))
 
         # 绘制折线
         ax.plot(standard['R'].values, standard['Accuracy'].values,
@@ -258,7 +258,7 @@ class ThesisFigureGenerator:
 
         ax.set_xlabel('遮蔽半径 R', fontsize=LABEL_FONT_SIZE)
         ax.set_ylabel('准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax.legend(loc='lower left', fontsize=LEGEND_FONT_SIZE)
+        ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=30)
         ax.grid(True, alpha=0.3)
         ax.set_xticks([2, 3, 4])
         ax.tick_params(labelsize=TICK_FONT_SIZE)
@@ -292,7 +292,7 @@ class ThesisFigureGenerator:
         x = np.arange(len(models_to_show))
         width = 0.15
 
-        fig, ax = plt.subplots(figsize=(16, 8.5))
+        fig, ax = plt.subplots(figsize=(18, 10))
 
         for i, (col, label) in enumerate(zip(attack_cols, attack_labels)):
             values = []
@@ -310,14 +310,14 @@ class ThesisFigureGenerator:
         # 设置x轴标签
         model_labels = ['Standard\n(标准模型)', 'PGD-AT', 'Adaptive-Saliency-AT\n(N=5,R=3)', 'Mix-AT']
         ax.set_xticks(x + width * 2)
-        ax.set_xticklabels(model_labels, fontsize=TICK_FONT_SIZE)
-        ax.set_ylabel('准确率 (%)', fontsize=LABEL_FONT_SIZE)
-        ax.legend(loc='upper right', ncol=2, fontsize=LEGEND_FONT_SIZE)
+        ax.set_xticklabels(model_labels, fontsize=30)
+        ax.set_ylabel('准确率 (%)', fontsize=32)
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.24), ncol=3, fontsize=30)
         ax.grid(True, alpha=0.3, axis='y')
         ax.set_ylim([0, 110])
         ax.tick_params(labelsize=TICK_FONT_SIZE)
 
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0, 1, 0.86])
         output_path = OUTPUT_DIR / "exp_model_comparison_bar.pdf"
         plt.savefig(output_path, format='pdf')
         plt.savefig(OUTPUT_DIR / "exp_model_comparison_bar.png", format='png')
@@ -355,7 +355,7 @@ class ThesisFigureGenerator:
         mix_values += mix_values[:1]
         angles += angles[:1]
 
-        fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(figsize=(16, 16), subplot_kw=dict(polar=True))
 
         ax.plot(angles, adaptive_values, 'o-', linewidth=2.5,
                 color=COLORS['adaptive_saliency'], label='Adaptive-Saliency-AT', markersize=10)
@@ -366,11 +366,11 @@ class ThesisFigureGenerator:
         ax.fill(angles, mix_values, alpha=0.25, color=COLORS['mix_at'])
 
         ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(labels, fontsize=TICK_FONT_SIZE)
+        ax.set_xticklabels(labels, fontsize=30)
         ax.set_ylim(0, 100)
-        ax.tick_params(labelsize=TICK_FONT_SIZE)
-        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.0), fontsize=LEGEND_FONT_SIZE)
-        plt.tight_layout()
+        ax.tick_params(labelsize=28, pad=18)
+        ax.legend(loc='upper right', bbox_to_anchor=(1.42, 1.02), fontsize=30)
+        plt.tight_layout(rect=[0.04, 0.04, 0.86, 0.96])
         output_path = OUTPUT_DIR / "exp_radar_comparison.pdf"
         plt.savefig(output_path, format='pdf')
         plt.savefig(OUTPUT_DIR / "exp_radar_comparison.png", format='png')

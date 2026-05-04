@@ -412,7 +412,7 @@ def fig_model_compare(models_dict, attack_name, attack_short, attack_factory, n_
     chosen = rng.choice(cand, min(n_cases, len(cand)), replace=False)
 
     n_models = len(models_dict)
-    fig, axes = plt.subplots(len(chosen), n_models + 1, figsize=(2.05 * (n_models + 1), 2.25 * len(chosen)))
+    fig, axes = plt.subplots(len(chosen), n_models + 1, figsize=(2.25 * (n_models + 1), 2.75 * len(chosen)))
     if len(chosen) == 1:
         axes = axes[None, :]
 
@@ -422,9 +422,9 @@ def fig_model_compare(models_dict, attack_name, attack_short, attack_factory, n_
         true_l = int(pool_y[idx])
         img = pool_x[idx, 0].cpu().numpy()
         axes[r_idx, 0].imshow(img, cmap='gray', vmin=0, vmax=1)
-        axes[r_idx, 0].set_title(headers[0] if r_idx == 0 else '', fontsize=22)
+        axes[r_idx, 0].set_title(headers[0] if r_idx == 0 else '', fontsize=26)
         axes[r_idx, 0].text(-0.25, 0.5, f'真:{true_l}', transform=axes[r_idx, 0].transAxes,
-                            rotation=90, va='center', ha='center', fontsize=22)
+                            rotation=90, va='center', ha='center', fontsize=26)
         axes[r_idx, 0].axis('off')
 
         for c, (mname, mshort, m) in enumerate(models_dict):
@@ -443,11 +443,11 @@ def fig_model_compare(models_dict, attack_name, attack_short, attack_factory, n_
             color = 'red' if success[idx] else 'green'
             ax.set_title(
                 head + title_pred_only(int(pred_a[0]), float(conf_a[0])),
-                fontsize=22, color=color)
+                fontsize=26, color=color)
             ax.axis('off')
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.02, hspace=0.18)
+    plt.subplots_adjust(wspace=0.02, hspace=0.36)
     save_fig(fig, 'model_cmp', f'cmp_{attack_short}')
 
 
@@ -540,11 +540,13 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
     rng = np.random.RandomState(11)
     chosen = rng.choice(cand, min(n_samples, len(cand)), replace=False)
 
-    fig, axes = plt.subplots(len(chosen), 4, figsize=(10.5, 2.35 * len(chosen)))
+    fig, axes = plt.subplots(len(chosen), 5, figsize=(12.0, 2.95 * len(chosen)),
+                             gridspec_kw={'width_ratios': [0.42, 1, 1, 1, 1]})
     if len(chosen) == 1:
         axes = axes[None, :]
 
     headers = [
+        '',
         f'原图',
         f'{attribution_header("Fixed", attribution)}\n(k={N_FIXED},\nkernel={KERNEL})',
         f'{attribution_header("Ada", attribution)}\n(N={N_ADA},\nR={R_ADA})',
@@ -557,49 +559,47 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
         mf = m_f[idx, 0].cpu().numpy()
         ma = m_a[idx, 0].cpu().numpy()
 
-        # col 0: 原图
-        axes[r_idx, 0].imshow(img, cmap='gray', vmin=0, vmax=1)
-        axes[r_idx, 0].set_title(headers[0] if r_idx == 0 else '', fontsize=21)
-        axes[r_idx, 0].text(-0.25, 0.5, f'真:{true_l}', transform=axes[r_idx, 0].transAxes,
-                            rotation=90, va='center', ha='center', fontsize=21)
         axes[r_idx, 0].axis('off')
+        axes[r_idx, 0].text(0.5, 0.5, f'{true_l}', transform=axes[r_idx, 0].transAxes,
+                            rotation=90, va='center', ha='center', fontsize=25)
 
-        # col 1: Fixed mask (red)
-        pred_f, conf_f = predict(model, x_f[idx:idx + 1])
-        axes[r_idx, 1].imshow(red_overlay(img, mf))
-        head = headers[1] + '\n' if r_idx == 0 else ''
-        axes[r_idx, 1].set_title(head + f'{int(mf.sum())}px ' +
-                                 title_pred_only(int(pred_f[0]), float(conf_f[0])),
-                                 fontsize=22, color=status_color(int(pred_f[0]), true_l))
+        axes[r_idx, 1].imshow(img, cmap='gray', vmin=0, vmax=1)
+        axes[r_idx, 1].set_title(headers[1] if r_idx == 0 else '', fontsize=24)
         axes[r_idx, 1].axis('off')
 
-        # col 2: Adaptive mask (blue)
+        pred_f, conf_f = predict(model, x_f[idx:idx + 1])
+        axes[r_idx, 2].imshow(red_overlay(img, mf))
+        head = headers[2] + '\n' if r_idx == 0 else ''
+        axes[r_idx, 2].set_title(head + f'{int(mf.sum())}px ' +
+                                 title_pred_only(int(pred_f[0]), float(conf_f[0])),
+                                 fontsize=25, color=status_color(int(pred_f[0]), true_l))
+        axes[r_idx, 2].axis('off')
+
         pred_a, conf_a = predict(model, x_a[idx:idx + 1])
         rgb = np.stack([img, img, img], axis=-1).astype(float)
         rgb[..., 2] = np.clip(rgb[..., 2] + ma * 0.7, 0, 1)
         rgb[..., 0] *= (1 - ma * 0.5)
         rgb[..., 1] *= (1 - ma * 0.5)
-        axes[r_idx, 2].imshow(rgb)
-        head = headers[2] + '\n' if r_idx == 0 else ''
-        axes[r_idx, 2].set_title(head + f'{int(ma.sum())}px ' +
+        axes[r_idx, 3].imshow(rgb)
+        head = headers[3] + '\n' if r_idx == 0 else ''
+        axes[r_idx, 3].set_title(head + f'{int(ma.sum())}px ' +
                                  title_pred_only(int(pred_a[0]), float(conf_a[0])),
-                                 fontsize=22, color=status_color(int(pred_a[0]), true_l))
-        axes[r_idx, 2].axis('off')
+                                 fontsize=25, color=status_color(int(pred_a[0]), true_l))
+        axes[r_idx, 3].axis('off')
 
-        # col 3: 重叠（red+blue=purple）
         rgb2 = np.stack([img, img, img], axis=-1).astype(float)
         rgb2[..., 0] = np.clip(rgb2[..., 0] + mf * 0.7, 0, 1)
         rgb2[..., 2] = np.clip(rgb2[..., 2] + ma * 0.7, 0, 1)
         rgb2[..., 1] *= (1 - (mf + ma).clip(0, 1) * 0.5)
         overlap = (mf > 0) & (ma > 0)
         ovr_pct = overlap.sum() / max(1, ((mf > 0) | (ma > 0)).sum()) * 100
-        axes[r_idx, 3].imshow(rgb2)
-        head = headers[3] + '\n' if r_idx == 0 else ''
-        axes[r_idx, 3].set_title(head + f'IoU={ovr_pct:.0f}%', fontsize=19)
-        axes[r_idx, 3].axis('off')
+        axes[r_idx, 4].imshow(rgb2)
+        head = headers[4] + '\n' if r_idx == 0 else ''
+        axes[r_idx, 4].set_title(head + f'IoU={ovr_pct:.0f}%', fontsize=23)
+        axes[r_idx, 4].axis('off')
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.02, hspace=0.18)
+    plt.subplots_adjust(wspace=0.02, hspace=0.36)
     save_fig(fig, 'fix_vs_ada', f'fva_{attribution}_{model_short}')
 
 

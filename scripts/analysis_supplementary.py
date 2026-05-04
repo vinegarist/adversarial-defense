@@ -164,8 +164,8 @@ def figure_fixed_vs_adaptive(model, n_samples=5):
     # 行3: Fixed 最终 mask 应用后的图像
     # 行4: Adaptive mask 应用后的图像
     fig, axes = plt.subplots(
-        4, n_samples + 1, figsize=(2.0 * n_samples + 1.3, 6.8),
-        gridspec_kw={'width_ratios': [0.7] + [1] * n_samples}
+        4, n_samples + 1, figsize=(2.0 * n_samples + 1.2, 8.8),
+        gridspec_kw={'width_ratios': [0.55] + [1] * n_samples}
     )
     row_labels = ['原图', 'Fixed叠加\n越亮越重叠',
                   f'Fixed最终\n上限{theoretical}px',
@@ -173,7 +173,7 @@ def figure_fixed_vs_adaptive(model, n_samples=5):
     for r_, lab in enumerate(row_labels):
         axes[r_, 0].axis('off')
         axes[r_, 0].text(0.5, 0.5, lab, transform=axes[r_, 0].transAxes,
-                         va='center', ha='center', fontsize=18)
+                         rotation=90, va='center', ha='center', fontsize=20)
     for j in range(n_samples):
         col = j + 1
         # 原图
@@ -193,25 +193,28 @@ def figure_fixed_vs_adaptive(model, n_samples=5):
         axes[1, col].imshow(rgb)
         # 重叠像素数标注
         ov_px = int((block_overlay > 1).sum())
-        axes[1, col].text(0.5, 0.09, f'{ov_px}px', transform=axes[1, col].transAxes,
-                          ha='center', va='bottom', fontsize=18, color='#C0392B')
+        axes[1, col].text(0.5, -0.10, f'{ov_px}px', transform=axes[1, col].transAxes,
+                          ha='center', va='top', fontsize=18, color='#C0392B',
+                          clip_on=False)
         axes[1, col].axis('off')
 
         # Fixed 最终遮蔽
         m = full_mask_fix[j, 0].cpu().numpy()
         x_fix = img * (1 - m)
         axes[2, col].imshow(x_fix, cmap='gray', vmin=0, vmax=1)
-        axes[2, col].text(0.5, 0.09, f'{int(actual_fix[j])}px',
+        axes[2, col].text(0.5, -0.10, f'{int(actual_fix[j])}px',
                           transform=axes[2, col].transAxes,
-                          ha='center', va='bottom', fontsize=18, color='white')
+                          ha='center', va='top', fontsize=18, color='black',
+                          clip_on=False)
         axes[2, col].axis('off')
 
         # Adaptive 最终遮蔽
         x_ad = x_adv_ada[j, 0].cpu().numpy()
         axes[3, col].imshow(x_ad, cmap='gray', vmin=0, vmax=1)
-        axes[3, col].text(0.5, 0.09, f'{int(actual_ada[j])}px',
+        axes[3, col].text(0.5, -0.10, f'{int(actual_ada[j])}px',
                           transform=axes[3, col].transAxes,
-                          ha='center', va='bottom', fontsize=18, color='white')
+                          ha='center', va='top', fontsize=18, color='black',
+                          clip_on=False)
         axes[3, col].axis('off')
 
     # 行标题
@@ -223,7 +226,7 @@ def figure_fixed_vs_adaptive(model, n_samples=5):
         pass
 
     plt.tight_layout()
-    plt.subplots_adjust(hspace=0.06, wspace=0.04)
+    plt.subplots_adjust(hspace=0.22, wspace=0.04)
     return fig, dict(actual_fix=actual_fix.tolist(),
                      overlap_ratio=overlap_ratio.tolist(),
                      actual_ada=actual_ada.tolist(),
