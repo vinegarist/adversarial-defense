@@ -540,8 +540,8 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
     rng = np.random.RandomState(11)
     chosen = rng.choice(cand, min(n_samples, len(cand)), replace=False)
 
-    fig, axes = plt.subplots(len(chosen), 5, figsize=(12.0, 2.95 * len(chosen)),
-                             gridspec_kw={'width_ratios': [0.42, 1, 1, 1, 1]})
+    fig, axes = plt.subplots(len(chosen), 5, figsize=(11.4, 2.95 * len(chosen)),
+                             gridspec_kw={'width_ratios': [0.22, 1, 1, 1, 1]})
     if len(chosen) == 1:
         axes = axes[None, :]
 
@@ -560,8 +560,9 @@ def fig_fix_vs_ada(model, model_name, model_short, attribution, n_samples=N_SAMP
         ma = m_a[idx, 0].cpu().numpy()
 
         axes[r_idx, 0].axis('off')
-        axes[r_idx, 0].text(0.5, 0.5, f'{true_l}', transform=axes[r_idx, 0].transAxes,
-                            rotation=90, va='center', ha='center', fontsize=25)
+        axes[r_idx, 0].text(0.72, 0.5, f'\u771f\u5b9e\u503c:{true_l}',
+                            transform=axes[r_idx, 0].transAxes,
+                            rotation=90, va='center', ha='center', fontsize=24)
 
         axes[r_idx, 1].imshow(img, cmap='gray', vmin=0, vmax=1)
         axes[r_idx, 1].set_title(headers[1] if r_idx == 0 else '', fontsize=24)

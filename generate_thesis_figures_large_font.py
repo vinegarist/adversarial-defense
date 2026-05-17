@@ -292,7 +292,7 @@ class ThesisFigureGenerator:
         x = np.arange(len(models_to_show))
         width = 0.15
 
-        fig, ax = plt.subplots(figsize=(18, 10))
+        fig, ax = plt.subplots(figsize=(22, 10.5))
 
         for i, (col, label) in enumerate(zip(attack_cols, attack_labels)):
             values = []
@@ -312,12 +312,12 @@ class ThesisFigureGenerator:
         ax.set_xticks(x + width * 2)
         ax.set_xticklabels(model_labels, fontsize=30)
         ax.set_ylabel('准确率 (%)', fontsize=32)
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.24), ncol=3, fontsize=30)
+        ax.legend(loc='center left', bbox_to_anchor=(1.03, 0.5), ncol=1, fontsize=30)
         ax.grid(True, alpha=0.3, axis='y')
         ax.set_ylim([0, 110])
         ax.tick_params(labelsize=TICK_FONT_SIZE)
 
-        plt.tight_layout(rect=[0, 0, 1, 0.86])
+        plt.tight_layout(rect=[0, 0, 0.78, 1])
         output_path = OUTPUT_DIR / "exp_model_comparison_bar.pdf"
         plt.savefig(output_path, format='pdf')
         plt.savefig(OUTPUT_DIR / "exp_model_comparison_bar.png", format='png')
@@ -355,7 +355,8 @@ class ThesisFigureGenerator:
         mix_values += mix_values[:1]
         angles += angles[:1]
 
-        fig, ax = plt.subplots(figsize=(16, 16), subplot_kw=dict(polar=True))
+        fig = plt.figure(figsize=(18, 14))
+        ax = fig.add_axes([0.08, 0.10, 0.58, 0.78], polar=True)
 
         ax.plot(angles, adaptive_values, 'o-', linewidth=2.5,
                 color=COLORS['adaptive_saliency'], label='Adaptive-Saliency-AT', markersize=10)
@@ -369,8 +370,9 @@ class ThesisFigureGenerator:
         ax.set_xticklabels(labels, fontsize=30)
         ax.set_ylim(0, 100)
         ax.tick_params(labelsize=28, pad=18)
-        ax.legend(loc='upper right', bbox_to_anchor=(1.42, 1.02), fontsize=30)
-        plt.tight_layout(rect=[0.04, 0.04, 0.86, 0.96])
+        handles, legend_labels = ax.get_legend_handles_labels()
+        fig.legend(handles, legend_labels, loc='center left',
+                   bbox_to_anchor=(0.70, 0.55), fontsize=30)
         output_path = OUTPUT_DIR / "exp_radar_comparison.pdf"
         plt.savefig(output_path, format='pdf')
         plt.savefig(OUTPUT_DIR / "exp_radar_comparison.png", format='png')
